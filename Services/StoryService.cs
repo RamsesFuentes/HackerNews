@@ -11,7 +11,7 @@ namespace HackerNews.Services
 
         public async Task<IEnumerable<Story>> GetBestStoriesAsync(int quantity)
         {
-            IEnumerable<int> storiesIds = await m_storyRepository.GetBestStoriesIdsAsync(quantity);
+            IEnumerable<int> storiesIds = await m_storyRepository.GetBestStoriesIdsAsync();
             IEnumerable<Task<Story?>> storiesTasks = storiesIds.Select(m_storyRepository.GetStoryByIdAsync);
             IEnumerable<Story?> nullableStories = await Task.WhenAll(storiesTasks);
             IEnumerable<Story> stories = nullableStories.OfType<Story>();
@@ -20,7 +20,7 @@ namespace HackerNews.Services
                 IEnumerable<int> storiesNotFoundIds = storiesIds.Except(stories.Select(story => story.Id));
                 m_logger.LogWarning($"Stories not found: {string.Join(',', storiesNotFoundIds)}");
             }
-            return stories;
+            return stories.OrderByDescending(story => story.Score).Take(quantity);
 
         }
     }

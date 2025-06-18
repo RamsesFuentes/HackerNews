@@ -30,14 +30,12 @@ namespace HackerNews.Persistence
             m_logger = logger;
         }
 
-        public async Task<IEnumerable<int>> GetBestStoriesIdsAsync(int quantity)
+        public async Task<IEnumerable<int>> GetBestStoriesIdsAsync()
         {
             bool acquired = false;
             try
             {
-                if (quantity <= 0) return Enumerable.Empty<int>();
-
-                if (m_cache.TryGetValue(m_bestStoriesCacheKey, out IEnumerable<int>? storiesIds)) return (storiesIds ?? Enumerable.Empty<int>()).Take(quantity);
+                if (m_cache.TryGetValue(m_bestStoriesCacheKey, out IEnumerable<int>? storiesIds)) return (storiesIds ?? Enumerable.Empty<int>());
 
                 acquired = await GetBestStoriesSemaphore.WaitAsync(SemaphoreTimeOut);
                 if (!acquired)
@@ -49,7 +47,7 @@ namespace HackerNews.Persistence
                 if (m_cache.TryGetValue(m_bestStoriesCacheKey, out storiesIds))
                 { 
                     GetBestStoriesSemaphore.Release();
-                    return (storiesIds ?? Enumerable.Empty<int>()).Take(quantity);
+                    return (storiesIds ?? Enumerable.Empty<int>());
                 }
 
                 storiesIds = await m_httpClient.GetFromJsonAsync<List<int>>($"{m_bestStoriesUrl}{m_jsonExtension}");
@@ -64,7 +62,7 @@ namespace HackerNews.Persistence
                 m_cache.Set(m_bestStoriesCacheKey, storiesIds, cacheEntryOptions);
 
                 GetBestStoriesSemaphore.Release();
-                return storiesIds.Take(quantity);
+                return storiesIds;
             }
             catch (Exception e)
             {
