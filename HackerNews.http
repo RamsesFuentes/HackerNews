@@ -1,0 +1,6 @@
+@HackerNews_HostAddress = http://localhost:5273
+
+GET {{HackerNews_HostAddress}}/story/best?quantity=5
+Accept: application/json
+
+###
